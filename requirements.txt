@@ -1,0 +1,8 @@
+requests
+sgp4
+rich
+streamlit
+folium
+streamlit-folium
+streamlit-autorefresh
+pytest
