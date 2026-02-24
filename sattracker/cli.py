@@ -5,6 +5,7 @@ import sys
 
 from . import display
 from .calculator import CITIES, calculate_position, predict_passes
+from .coverage import compute_city_coverage
 from .fetcher import SATELLITE_GROUPS, fetch_by_group, fetch_by_name, fetch_by_norad_id
 
 HUBBLE_NETWORK_SEARCH = "HUBBLE"
@@ -104,6 +105,38 @@ def cmd_passes(args: argparse.Namespace) -> None:
     display.show_passes(all_passes, city)
 
 
+def cmd_coverage(args: argparse.Namespace) -> None:
+    """Analyze Hubble Network coverage for a city."""
+    city = args.city.lower()
+    if city not in CITIES:
+        available = ", ".join(CITIES.keys())
+        display.show_error(f"Unknown city '{args.city}'. Available: {available}")
+        return
+
+    lat, lon = CITIES[city]
+
+    display.show_info("Fetching Hubble Network satellites...")
+    satellites = fetch_by_name(HUBBLE_NETWORK_SEARCH)
+    hubble_sats = [s for s in satellites if s.norad_id in HUBBLE_NETWORK_IDS]
+    if not hubble_sats:
+        hubble_sats = [s for s in satellites if s.norad_id != 20580]
+
+    if not hubble_sats:
+        display.show_error("No Hubble Network satellites found.")
+        return
+
+    display.show_info(
+        f"Analyzing {args.hours}h coverage for {city.title()} "
+        f"({len(hubble_sats)} satellites, min elevation {args.min_elevation}°)..."
+    )
+    report = compute_city_coverage(
+        hubble_sats, city, lat, lon,
+        hours=args.hours,
+        min_elevation_deg=args.min_elevation,
+    )
+    display.show_coverage_report(report)
+
+
 def cmd_list_groups(_args: argparse.Namespace) -> None:
     """List available satellite groups."""
     display.console.print("\n  [bold]Available satellite groups:[/bold]\n")
@@ -143,6 +176,15 @@ def main() -> None:
         "--min-elevation", type=float, default=10.0, help="Minimum elevation in degrees (default: 10)"
     )
     p_passes.set_defaults(func=cmd_passes)
+
+    # coverage
+    p_cov = subparsers.add_parser("coverage", help="Analyze Hubble Network coverage for a city")
+    p_cov.add_argument("city", help="City name (e.g. 'tel aviv', 'seattle')")
+    p_cov.add_argument("--hours", type=int, default=24, help="Analysis window in hours (default: 24)")
+    p_cov.add_argument(
+        "--min-elevation", type=float, default=10.0, help="Minimum elevation in degrees (default: 10)"
+    )
+    p_cov.set_defaults(func=cmd_coverage)
 
     # groups
     p_groups = subparsers.add_parser("groups", help="List available satellite groups")

@@ -6,6 +6,7 @@ from rich.panel import Panel
 from rich.text import Text
 
 from .calculator import SatPosition, PassPrediction
+from .coverage import CityCoverageReport
 
 console = Console()
 
@@ -80,6 +81,45 @@ def show_error(message: str) -> None:
 
 def show_info(message: str) -> None:
     console.print(f"\n  [bold blue]Info:[/bold blue] {message}\n")
+
+
+def show_coverage_report(report: CityCoverageReport) -> None:
+    """Display coverage analysis results."""
+    stats = (
+        f"[bold]{report.city_name.title()}[/bold] "
+        f"({report.latitude:.2f}°, {report.longitude:.2f}°)\n"
+        f"Analysis window: {report.analysis_hours}h\n\n"
+        f"[green]Coverage:[/green] {report.coverage_percentage}%\n"
+        f"[green]Total passes:[/green] {report.num_passes}\n"
+        f"[yellow]Avg gap:[/yellow] {report.avg_gap_minutes:.0f} min\n"
+        f"[red]Max gap:[/red] {report.max_gap_minutes:.0f} min\n"
+        f"[cyan]Avg pass duration:[/cyan] {report.avg_pass_duration_seconds:.0f}s"
+    )
+    console.print()
+    console.print(Panel(stats, title="Coverage Report", border_style="green"))
+
+    if report.windows:
+        table = Table(title="Coverage Windows", show_lines=True)
+        table.add_column("Satellite", style="bold cyan", min_width=20)
+        table.add_column("Start (UTC)", min_width=12)
+        table.add_column("End (UTC)", min_width=12)
+        table.add_column("Duration", justify="right")
+        table.add_column("Max Elevation", justify="right", style="green")
+
+        for w in report.windows:
+            mins = int(w.duration_seconds // 60)
+            secs = int(w.duration_seconds % 60)
+            table.add_row(
+                w.satellite_name,
+                w.start_time.strftime("%H:%M:%S"),
+                w.end_time.strftime("%H:%M:%S"),
+                f"{mins}m {secs}s",
+                f"{w.max_elevation_deg:.1f}°",
+            )
+
+        console.print()
+        console.print(table)
+    console.print()
 
 
 def show_banner() -> None:
