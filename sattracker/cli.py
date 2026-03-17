@@ -145,6 +145,12 @@ def cmd_list_groups(_args: argparse.Namespace) -> None:
     display.console.print()
 
 
+def cmd_chat(args: argparse.Namespace) -> None:
+    """Start an interactive AI agent chat session."""
+    from .agent import chat_session
+    chat_session(api_key=args.api_key or None)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         prog="sattracker",
@@ -189,6 +195,15 @@ def main() -> None:
     # groups
     p_groups = subparsers.add_parser("groups", help="List available satellite groups")
     p_groups.set_defaults(func=cmd_list_groups)
+
+    # chat
+    p_chat = subparsers.add_parser("chat", help="Ask questions in plain English (AI agent)")
+    p_chat.add_argument(
+        "--api-key",
+        default="",
+        help="Anthropic API key (or set ANTHROPIC_API_KEY env var)",
+    )
+    p_chat.set_defaults(func=cmd_chat)
 
     args = parser.parse_args()
     if not args.command:

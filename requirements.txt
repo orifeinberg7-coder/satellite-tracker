@@ -6,3 +6,4 @@ folium
 streamlit-folium
 streamlit-autorefresh
 pytest
+anthropic

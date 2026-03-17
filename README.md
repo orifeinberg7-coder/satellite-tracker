@@ -32,6 +32,28 @@ Hubble Network is deploying a constellation of LEO satellites that connect direc
 - Configurable minimum elevation angle
 - Duration and peak elevation for each pass
 
+## AI Agent
+
+Ask questions in plain English — the agent calls the right satellite functions automatically:
+
+```bash
+python -m sattracker chat
+```
+
+```
+You: Where is the ISS right now?
+Agent: The ISS is currently at 49.2°N, 117.4°E over central Asia at 429 km altitude.
+
+You: When will Hubble pass over Tel Aviv today?
+Agent: The next Hubble Network pass over Tel Aviv is at 14:32 UTC, max elevation 23°, lasting ~4 minutes.
+```
+
+Requires an Anthropic API key. Add it to a `.env` file in the project root:
+
+```
+ANTHROPIC_API_KEY=sk-ant-...
+```
+
 ## Quick Start
 
 ```bash
